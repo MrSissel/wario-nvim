@@ -126,12 +126,24 @@ function M.toggle_yazi()
   term:toggle()
 end
 
+-- 右侧终端
+function M.toggle_right_term()
+  local term = M.get_or_create_terminal('right', 4, nil, {
+    direction = 'vertical',
+    on_open = function(term)
+      vim.api.nvim_win_set_width(term.window, math.floor(vim.o.columns * 0.3))
+    end,
+  })
+  term:toggle()
+end
+
 -- 设置全局函数
 function M.setup_global_functions()
   M.recreate_all_terminals()
   _G._NORMAL_TERM_TOGGLE = M.toggle_normal_term
   _G._LAZYGIT_TOGGLE = M.toggle_lazygit
   _G._YAZI_TOGGLE = M.toggle_yazi
+  _G._RIGHT_TERM_TOGGLE = M.toggle_right_term
 end
 
 -- 预热终端

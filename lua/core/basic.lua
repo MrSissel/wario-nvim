@@ -23,6 +23,8 @@ vim.api.nvim_create_autocmd('FileType', {
   desc = 'disable cursorcolumn',
 })
 
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
 -- - "t"  -- 不根据 textwidth 自动换行
 -- - "c"  -- 不自动换行注释
 -- - "r"  -- 不自动插入注释

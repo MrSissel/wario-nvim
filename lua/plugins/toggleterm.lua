@@ -17,6 +17,12 @@ return {
 
       terminal_helper.init_and_warmup()
 
+      vim.keymap.set({ 'n', 'i', 't' }, '<D-u>', '<cmd>lua _RIGHT_TERM_TOGGLE()<CR>', {
+        noremap = true,
+        silent = true,
+        desc = '切换右侧终端',
+      })
+
       -- 设置键位映射
       vim.api.nvim_create_autocmd('VimEnter', {
         callback = function()
