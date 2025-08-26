@@ -1,5 +1,4 @@
 return function()
-  local color_table = require('core.custom-style').color_table
   local vue_language_server_path = vim.fn.expand('$MASON/packages')
     .. '/vue-language-server'
     .. '/node_modules/@vue/language-server'
