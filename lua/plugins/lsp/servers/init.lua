@@ -19,4 +19,10 @@ return function()
 
   -- Emmet
   require('plugins.lsp.servers.emmet')()
+
+  -- Yaml
+  require('plugins.lsp.servers.yaml')()
+
+  -- Json
+  require('plugins.lsp.servers.json')()
 end

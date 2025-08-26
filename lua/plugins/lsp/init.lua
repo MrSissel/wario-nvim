@@ -21,6 +21,7 @@ return {
   build = {
     'npm i -g vscode-langservers-extracted',
     'npm i -g eslint',
+    'npm i -g yaml-language-server',
   },
   config = function()
     require('plugins.lsp.mason')()
