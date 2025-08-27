@@ -1,9 +1,116 @@
 local M = {}
-local winblend = 30
-local Terminal = require('toggleterm.terminal').Terminal
 
 -- 全局终端实例存储
 _G.terminal_instances = _G.terminal_instances or {}
+
+local winblend = 30
+local Terminal = require('toggleterm.terminal').Terminal
+
+-- 终端配置表
+local terminal_configs = {
+  normal = {
+    count = 1,
+    cmd = nil,
+    extra_opts = {
+      float_opts = {
+        winblend = winblend,
+      },
+    },
+  },
+  lazygit = {
+    count = 2,
+    cmd = 'lazygit',
+    extra_opts = {
+      dir = 'git_dir',
+      float_opts = {
+        winblend = winblend,
+        width = function()
+          return math.floor(vim.o.columns * 0.95)
+        end,
+        height = function()
+          return math.floor(vim.o.lines * 0.95)
+        end,
+      },
+      env = {
+        LG_CONFIG_FILE = os.getenv('HOME') .. '/.config/lazygit/config.yml',
+      },
+      close_on_exit = true,
+      on_exit = function(term)
+        vim.schedule(function()
+          if term:is_open() then
+            term:close()
+          end
+        end)
+      end,
+    },
+  },
+  yazi = {
+    count = 3,
+    cmd = 'yazi',
+    extra_opts = {
+      float_opts = {
+        width = function()
+          return math.floor(vim.o.columns * 0.9)
+        end,
+        height = function()
+          return math.floor(vim.o.lines * 0.9)
+        end,
+      },
+      close_on_exit = true,
+      on_exit = function(term)
+        vim.schedule(function()
+          if term:is_open() then
+            term:close()
+          end
+        end)
+      end,
+    },
+  },
+  right = {
+    count = 4,
+    cmd = nil,
+    extra_opts = {
+      direction = 'vertical',
+      on_open = function(term)
+        vim.api.nvim_win_set_width(term.window, math.floor(vim.o.columns * 0.3))
+      end,
+    },
+  },
+}
+
+local function close_all_float_terminals(exclude_key)
+  for key, terminal in pairs(_G.terminal_instances) do
+    if key == exclude_key then
+      goto continue
+    end
+
+    if terminal and terminal:is_open() then
+      local config = terminal_configs[key]
+      local direction = config and config.extra_opts and config.extra_opts.direction or 'float'
+      if direction == 'float' then
+        terminal:close()
+      end
+    end
+
+    ::continue::
+  end
+end
+
+terminal_configs.normal.before_toggle = function()
+  close_all_float_terminals('normal')
+end
+
+terminal_configs.lazygit.before_toggle = function()
+  close_all_float_terminals('lazygit')
+end
+
+terminal_configs.yazi.before_toggle = function()
+  close_all_float_terminals('yazi')
+end
+
+terminal_configs.right.before_toggle = function()
+  close_all_float_terminals('right')
+end
 
 -- 动态创建终端的函数
 local function create_terminal(count, cmd, extra_opts)
@@ -65,76 +172,42 @@ function M.recreate_all_terminals()
   _G.terminal_instances = {}
 end
 
+-- 通用终端切换函数
+local function toggle_terminal(key)
+  local config = terminal_configs[key]
+  if not config then
+    vim.notify('终端配置 \'' .. key .. '\' 不存在', vim.log.levels.ERROR)
+    return
+  end
+
+  if config.before_toggle then
+    config.before_toggle()
+  end
+
+  local term = M.get_or_create_terminal(key, config.count, config.cmd, config.extra_opts)
+  vim.schedule(function()
+    term:toggle()
+  end)
+end
+
 -- 普通终端
 function M.toggle_normal_term()
-  local term = M.get_or_create_terminal('normal', 1, nil, {
-    float_opts = {
-      winblend = winblend,
-    },
-  })
-  term:toggle()
+  toggle_terminal('normal')
 end
 
 -- Lazygit 终端
 function M.toggle_lazygit()
-  local term = M.get_or_create_terminal('lazygit', 2, 'lazygit', {
-    dir = 'git_dir',
-    float_opts = {
-      winblend = winblend,
-      width = function()
-        return math.floor(vim.o.columns * 0.95)
-      end,
-      height = function()
-        return math.floor(vim.o.lines * 0.95)
-      end,
-    },
-    env = {
-      LG_CONFIG_FILE = os.getenv('HOME') .. '/.config/lazygit/config.yml',
-    },
-    close_on_exit = true,
-    on_exit = function(term)
-      vim.schedule(function()
-        if term:is_open() then
-          term:close()
-        end
-      end)
-    end,
-  })
-  term:toggle()
+  toggle_terminal('lazygit')
 end
 
 -- Yazi 终端
 function M.toggle_yazi()
-  local term = M.get_or_create_terminal('yazi', 3, 'yazi', {
-    float_opts = {
-      width = function()
-        return math.floor(vim.o.columns * 0.9)
-      end,
-      height = function()
-        return math.floor(vim.o.lines * 0.9)
-      end,
-    },
-    close_on_exit = true,
-    on_exit = function(term)
-      vim.schedule(function()
-        if term:is_open() then
-          term:close()
-        end
-      end)
-    end,
-  })
-  term:toggle()
+  toggle_terminal('yazi')
 end
 
 -- 右侧终端
 function M.toggle_right_term()
-  local term = M.get_or_create_terminal('right', 4, nil, {
-    direction = 'vertical',
-    on_open = function(term)
-      vim.api.nvim_win_set_width(term.window, math.floor(vim.o.columns * 0.3))
-    end,
-  })
-  term:toggle()
+  toggle_terminal('right')
 end
 
 -- 设置全局函数
@@ -148,11 +221,8 @@ end
 
 -- 预热终端
 function M.warmup_terminals()
-  local normal_term = M.get_or_create_terminal('normal', 1, nil, {
-    float_opts = {
-      winblend = winblend,
-    },
-  })
+  local config = terminal_configs.normal
+  local normal_term = M.get_or_create_terminal('normal', config.count, config.cmd, config.extra_opts)
 
   if normal_term and normal_term.spawn then
     normal_term:spawn()
