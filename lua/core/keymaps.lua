@@ -53,3 +53,16 @@ vim.keymap.set('n', '<C-->', function()
   vim.cmd('WindowsDisableAutowidth')
   vim.cmd('resize -2')
 end, { desc = '减少窗口上下高度' })
+
+vim.keymap.set('t', '<Esc>', function()
+  local current_buf = vim.api.nvim_get_current_buf()
+  local buf_type = vim.api.nvim_buf_get_option(current_buf, 'buftype')
+
+  if buf_type == 'terminal' then
+    local buf_name = vim.api.nvim_buf_get_name(current_buf)
+    if buf_name:match('lazygit') or buf_name:match('2:') then
+      return '<Esc>'
+    end
+  end
+  return '<C-\\><C-n>' -- 退到normal模式
+end, { desc = 'Exit terminal mode', expr = true })
