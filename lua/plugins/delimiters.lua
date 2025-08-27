@@ -21,9 +21,6 @@ return {
         'RainbowDelimiterYellow',
         'RainbowDelimiterViolet',
         'RainbowDelimiterBlue',
-        -- 'RainbowDelimiterGreen',
-        -- 'RainbowDelimiterCyan',
-        -- 'RainbowDelimiterRed',
       },
 
       blacklist = {

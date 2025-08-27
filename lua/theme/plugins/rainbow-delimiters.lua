@@ -1,5 +1,3 @@
-local color_table = require('core.custom-style').color_table
-
 local M = {}
 
 function M.reset()
