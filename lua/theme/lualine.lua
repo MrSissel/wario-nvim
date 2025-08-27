@@ -179,7 +179,7 @@ end
 
 function M.get_lualine_theme()
   local current_colorscheme = vim.g.colors_name
-  return M.theme_map[current_colorscheme] or M.highlight_map.default
+  return M.theme_map[current_colorscheme] or M.theme_map.default
 end
 
 return M
